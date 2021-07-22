@@ -1,0 +1,129 @@
+ # Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ #
+ # Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ # software and associated documentation files (the "Software"), to deal in the Software
+ # without restriction, including without limitation the rights to use, copy, modify,
+ # merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ # permit persons to whom the Software is furnished to do so.
+ #
+ # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ # INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+ # PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ # HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  This template sets up AWS Glue Job, Trigger, IAM Role, S3 bucket.
+
+Parameters:
+
+  DataLake360DatabaseName:
+    Type: String
+    MinLength: "1"
+    Description: "Data Lake 360 Database Name."
+    Default: "datalake360db"
+    
+  ETLScriptsPrefix:
+    Type: String
+    MinLength: "1"
+    Description: "Location of the Glue job ETL script in S3."
+    Default: 'dataLakeDataCollector/glueJob'
+
+  DataBucketName:
+    Type: String
+    MinLength: "1"
+    Description: "Name of the S3 bucket in which the DataLake360 data will be uploaded. Bucket is created by this CFT."
+    Default: 'www-datalake-data'
+
+  ArtifactBucketName:
+    Type: String
+    MinLength: "1"
+    Description: "Name of the S3 bucket in which theETL script reside. Bucket is NOT created by this CFT. User need to upload the script file manually"
+    Default: 'www-idf-data'
+
+  JobSchedule:
+    Type: String
+    MinLength: "1"
+    Description: "ETL Job Schedule time in cron format"
+    Default: 'cron(00 23 * * ? *)'
+  
+Resources:
+  
+  RootBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref DataBucketName
+
+  ### AWS GLUE RESOURCES ###
+  AWSGlueJobRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - glue.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:ListBucket"
+                  - "s3:DeleteObject"
+                  - "s3:GetObjectTagging"
+                Resource:
+                  - !Sub "arn:aws:s3:::${DataBucketName}"
+                  - !Sub "arn:aws:s3:::${DataBucketName}/*"
+                  - !Sub "arn:aws:s3:::${ArtifactBucketName}"
+                  - !Sub "arn:aws:s3:::${ArtifactBucketName}/*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      Path: "/"
+
+  DataLake360DB:
+    Type: "AWS::Glue::Database"
+    Properties:
+      DatabaseInput:
+        Description: "DataLake 360 database."
+        Name: !Ref DataLake360DatabaseName
+      CatalogId: !Ref AWS::AccountId
+
+  ProcessSalesDataJob:
+    Type: "AWS::Glue::Job"
+    Properties:
+      Role: !Ref AWSGlueJobRole
+      Name: "DataLake360-DataCollector"
+      Command: {
+        "Name" : "pythonshell",
+        "ScriptLocation": !Sub "s3://${ArtifactBucketName}/${ETLScriptsPrefix}/dataLakeDataCollector.py",
+        "PythonVersion": "3"
+      }
+      DefaultArguments: {
+          "--s3_output_bucket": !Sub "${DataBucketName}"
+      }
+      MaxRetries: 0
+      Description: "Collect Data Lake metadata."
+      MaxCapacity: 1
+      GlueVersion: 1.0
+
+  ScheduledJobTrigger:
+    Type: AWS::Glue::Trigger
+    Properties:
+      Type: SCHEDULED
+      Description: Glue Job Schedule Trigger
+      Schedule: !Ref JobSchedule 
+      Actions:
+        - JobName: !Ref ProcessSalesDataJob
+      Name: datalake360-scheduled
+      StartOnCreation: true
+  
