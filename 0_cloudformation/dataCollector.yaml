@@ -51,7 +51,7 @@ Parameters:
   
 Resources:
   
-  RootBucket:
+  DataLakeDataStore:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref DataBucketName
@@ -98,7 +98,7 @@ Resources:
         Name: !Ref DataLake360DatabaseName
       CatalogId: !Ref AWS::AccountId
 
-  ProcessSalesDataJob:
+  DataLakeDataCollectorJob:
     Type: "AWS::Glue::Job"
     Properties:
       Role: !Ref AWSGlueJobRole
@@ -123,7 +123,7 @@ Resources:
       Description: Glue Job Schedule Trigger
       Schedule: !Ref JobSchedule 
       Actions:
-        - JobName: !Ref ProcessSalesDataJob
+        - JobName: !Ref DataLakeDataCollectorJob
       Name: datalake360-scheduled
       StartOnCreation: true
   
