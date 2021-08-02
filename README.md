@@ -13,6 +13,20 @@ Those insights help answer key questions such as
 
 ![Dashboard](/2_assets/dashboard.png)
 
+## Deploy your resources
+To make it easier to get started, we created a CloudFormation template that automatically sets up a few key components of the solution: 
+
+*	An AWS Glue job (Python program) that is triggered based on a schedule
+*	The AWS Identity and Access Management (IAM) role required by the AWS Glue job so the job can collect and store details about databases and tables in the Data Catalog
+*	A new S3 bucket for the AWS Glue job to store the data files
+*	A new database in the Data Catalog for storing our metrics data tables
+
+The source code for the AWS Glue job and the CloudFormation template are available in the GitHub repo.
+
+You must first download the AWS Glue Python code from GitHub and upload it to an existing S3 bucket. The path of this file needs to be provided when running the CloudFormation stack. 
+
+Launch the stack using cloudformation [script:](/0_cloudformation/dataCollector.yaml)
+
 ## Solution Overview
 
 ![Architecture](/2_assets/arch.png)
