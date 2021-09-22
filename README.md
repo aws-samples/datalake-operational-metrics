@@ -1,11 +1,13 @@
 ## Introduction
 
-Over the last number of years, enterprises have accumulated so much of data. Data volumes have increased at an unprecedented rate,
-exploding from terabytes to petabytes and sometimes exabytes of data. Increasingly many enterprises are building highly scalable, 
-available, secure, and flexible Data Lakes on AWS, that can handle extremely large data sets. Once data lakes are productionized, 
-to measure the efficacy of the data lake and communicate the gaps or accomplishments to the business groups, enterprise data teams 
-are looking for tools to extract operational insights from the data lake solution. 
-Those insights help answer key questions such as 
+Over the last number of years, enterprises have accumulated so muchmassive amounts of data.
+Data volumes have increased at an unprecedented rate, exploding from terabytes to petabytes and
+sometimes exabytes of data. Increasingly, many enterprises are building highly scalable,
+available, secure, and flexible data lakes on AWS that can handle extremely large datasets. After
+data lakes are productionized, to measure the efficacy of the data lake and communicate the gaps
+or accomplishments to the business groups, enterprise data teams need tools to extract
+operational insights from the data lake solution. Those insights help answer key questions such
+as:
 * when was the last time a table was updated 
 * what is the total table count in each of my database 
 * what is the projected growth of a given table 
