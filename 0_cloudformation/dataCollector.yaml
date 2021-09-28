@@ -40,8 +40,8 @@ Parameters:
   ArtifactBucketName:
     Type: String
     MinLength: "1"
-    Description: "Name of the S3 bucket in which theETL script reside. Bucket is NOT created by this CFT. User need to upload the script file manually"
-    Default: 'www-idf-data'
+    Description: "Name of the S3 bucket in which the ETL script reside. Bucket is NOT created by this CFT. User need to upload the script file manually"
+    Default: 'www-datalake-code'
 
   JobSchedule:
     Type: String
