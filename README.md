@@ -1,7 +1,7 @@
 ## Content provided here is for a AWS Blog.
 
-* CloudFormation
-* Python Program
+* CloudFormation Script 
+* Python Program for data collection
 
 ## Security
 
