@@ -1,6 +1,6 @@
 ## Content provided here is for a AWS Blog.
 
-* CloudFormation Script 
+* [CloudFormation Script] (https://github.com/aws-samples/datalake-operational-metrics/tree/main/0_cloudformation) 
 * Python Program for data collection
 
 ## Security
