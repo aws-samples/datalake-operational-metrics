@@ -70,10 +70,9 @@ def getTablesData(database_name, region=None):
             tableList = tableDetails["TableList"]
             
             i=0
-            lenght = len(tableList)
             
             table_data=''
-            while i < lenght:
+            while i < len(tableList):
                 table = tableList[i]
                 tableName = table['Name']
                 databaseName = table['DatabaseName']
@@ -112,7 +111,17 @@ def getTablesData(database_name, region=None):
                 retention = table['Retention']
                 retention = str(retention)
         
-                createdBy = table['CreatedBy']
+                try:
+                    createdBy = table['CreatedBy']
+                except KeyError:
+                    createdBy = "Unknown"
+                
+                try: 
+                    crawler_name = table["Parameters"]["UPDATED_BY_CRAWLER"]
+                except KeyError:
+                    crawler_name = "Unknown"
+            
+
                 isRegisteredWithLakeFormation = table['IsRegisteredWithLakeFormation']
                 isRegisteredWithLakeFormation = str(isRegisteredWithLakeFormation)
                 
@@ -121,13 +130,16 @@ def getTablesData(database_name, region=None):
                 
                 tableS3Details = getTableS3Details(location) 
                 
-                sizeInMB = tableS3Details['sizeInMB']
-                sizeInMB = str(sizeInMB)
+                if tableS3Details:
+                    sizeInMB = tableS3Details['sizeInMB']
+                    sizeInMB = str(sizeInMB)
+                    totalFiles = tableS3Details['totalFiles']
+                    totalFiles = str(totalFiles)
+                else:
+                    sizeInMB = "0"
+                    totalFiles = "0"
                 
-                totalFiles = tableS3Details['totalFiles']
-                totalFiles = str(totalFiles)
-                
-                data = tableName+","+databaseName+","+owner+","+createTime+","+updateTime+","+lastAccessTime+","+tableType+","+retention+","+createdBy+","+isRegisteredWithLakeFormation+','+location+','+sizeInMB+','+totalFiles
+                data = tableName+","+databaseName+","+owner+","+createTime+","+updateTime+","+lastAccessTime+","+tableType+","+retention+","+createdBy+","+isRegisteredWithLakeFormation+','+location+','+sizeInMB+','+totalFiles+','+crawler_name
                 table_data = table_data + data + "\n"
                             
                 i += 1
@@ -147,11 +159,9 @@ def getDatabasesData(region=None):
             databasesList = databasesList['DatabaseList']
                 
             i=0
-            length = len(databasesList)
-            
             dbNameList = []
   
-            while i < length:
+            while i < len(databasesList):
                 databaseDetail = databasesList[i]
                 dbName = databaseDetail['Name']
                 dbNameList.append(dbName)
@@ -159,14 +169,13 @@ def getDatabasesData(region=None):
                 i += 1
                 
             i=0
-            lenght = len(dbNameList)
             
             databases_data = "DatabaseName,CreateTime, SharedResource, SharedResourceOwner, SharedResourceDatabaseName, Location, Description" +"\n"
-            tables_header_data = "TableName,DatabaseName,Owner,CreateTime,UpdateTime,LastAccessTime,TableType,Retention,CreatedBy,IsRegisteredWithLakeFormation,Location,SizeInMBOnS3,TotalFilesonS3"+"\n"
+            tables_header_data = "TableName,DatabaseName,Owner,CreateTime,UpdateTime,LastAccessTime,TableType,Retention,CreatedBy,IsRegisteredWithLakeFormation,Location,SizeInMBOnS3,TotalFilesOnS3,CrawlerName"+"\n"
             tables_data = ''
             tables_data = tables_data + tables_header_data
 
-            while i < lenght:
+            while i < len(dbNameList):
                 
                 database = glue_client.get_database(Name = dbNameList[i])
                 
@@ -200,7 +209,6 @@ def getDatabasesData(region=None):
                     createTime = database['CreateTime']
                     createTime = createTime.strftime("%y/%m/%d %H:%M:%S")
                 
-               
                 tables_data=tables_data + getTablesData(dbName)
                 
                 data = dbName+","+createTime+","+sharedResource+","+sharedResourceOwner+","+sharedResourceDatabaseName+','+locationUri+","+description
@@ -217,4 +225,3 @@ def getDatabasesData(region=None):
         return False
 
 getDatabasesData()
-
